@@ -1,0 +1,6 @@
+.vscode
+bin
+obj
+communicator.db
+communicator.db-shm
+communicator.db-wal
