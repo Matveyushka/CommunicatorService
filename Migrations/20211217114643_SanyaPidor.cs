@@ -5,28 +5,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CommunicatorService.Migrations
 {
-    public partial class init : Migration
+    public partial class SanyaPidor : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                    Name = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_User", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PrivateMessages",
+                name: "PrivateMessage",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Content = table.Column<string>(type: "TEXT", nullable: false),
+                    Content = table.Column<string>(type: "TEXT", nullable: true),
                     SendingDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ReceiptDateTime = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SenderId = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -34,23 +34,23 @@ namespace CommunicatorService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PrivateMessages", x => x.Id);
+                    table.PrimaryKey("PK_PrivateMessage", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PrivateMessages_Users_RecipientId",
+                        name: "FK_PrivateMessage_User_RecipientId",
                         column: x => x.RecipientId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PrivateMessages_Users_SenderId",
+                        name: "FK_PrivateMessage_User_SenderId",
                         column: x => x.SenderId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "UsersRelations",
+                name: "UsersRelation",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -62,52 +62,52 @@ namespace CommunicatorService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UsersRelations", x => x.Id);
+                    table.PrimaryKey("PK_UsersRelation", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UsersRelations_Users_SubjectId",
+                        name: "FK_UsersRelation_User_SubjectId",
                         column: x => x.SubjectId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UsersRelations_Users_TargetId",
+                        name: "FK_UsersRelation_User_TargetId",
                         column: x => x.TargetId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrivateMessages_RecipientId",
-                table: "PrivateMessages",
+                name: "IX_PrivateMessage_RecipientId",
+                table: "PrivateMessage",
                 column: "RecipientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PrivateMessages_SenderId",
-                table: "PrivateMessages",
+                name: "IX_PrivateMessage_SenderId",
+                table: "PrivateMessage",
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UsersRelations_SubjectId",
-                table: "UsersRelations",
+                name: "IX_UsersRelation_SubjectId",
+                table: "UsersRelation",
                 column: "SubjectId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UsersRelations_TargetId",
-                table: "UsersRelations",
+                name: "IX_UsersRelation_TargetId",
+                table: "UsersRelation",
                 column: "TargetId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PrivateMessages");
+                name: "PrivateMessage");
 
             migrationBuilder.DropTable(
-                name: "UsersRelations");
+                name: "UsersRelation");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "User");
         }
     }
 }

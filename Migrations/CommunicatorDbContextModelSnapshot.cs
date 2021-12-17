@@ -23,7 +23,6 @@ namespace CommunicatorService.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("ReceiptDateTime")
@@ -44,7 +43,7 @@ namespace CommunicatorService.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("PrivateMessages");
+                    b.ToTable("PrivateMessage");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -54,12 +53,11 @@ namespace CommunicatorService.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("UsersRelation", b =>
@@ -89,7 +87,7 @@ namespace CommunicatorService.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("UsersRelations");
+                    b.ToTable("UsersRelation");
                 });
 
             modelBuilder.Entity("PrivateMessage", b =>

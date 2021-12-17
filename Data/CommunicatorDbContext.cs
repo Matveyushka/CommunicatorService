@@ -5,9 +5,9 @@ public class CommunicatorDbContext : DbContext
     public CommunicatorDbContext(DbContextOptions<CommunicatorDbContext> options) : base(options)
     { }
 
-    public DbSet<User> Users => Set<User>();
-    public DbSet<PrivateMessage> PrivateMessages => Set<PrivateMessage>();
-    public DbSet<UsersRelation> UsersRelations => Set<UsersRelation>();
+    public DbSet<User> User => Set<User>();
+    public DbSet<PrivateMessage> PrivateMessage => Set<PrivateMessage>();
+    public DbSet<UsersRelation> UsersRelation => Set<UsersRelation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

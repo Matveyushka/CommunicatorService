@@ -20,18 +20,40 @@ public class ContactController : ControllerBase
         this._context = context;
     }
 
+
+    [HttpGet]
+    public IActionResult Get()
+    {
+        User? subjectUser = null;
+        if (User?.Identity?.Name is string subjectName)
+        {
+            subjectUser = _context.User.FirstOrDefault(user => user.Name == subjectName);
+        }
+        if (subjectUser is null)
+        {
+            return BadRequest($"ТЫ МЕНЯ ОБМАНУТЬ ПЫТАЕШЬСЯ А ВОТ НЕ ВЫЙДЕТ");
+        }
+        var contacts = _context
+            .UsersRelation
+            .Where(relation => relation.SubjectUser == subjectUser)
+            .Select(relation => relation.TargetUser.Name)
+            .ToList();
+
+        return new JsonResult(contacts);
+    }
+
     [HttpPost]
-    public IActionResult PostAsync(ContactQuery contactQuery)
+    public IActionResult Post(ContactQuery contactQuery)
     {
         User? subjectUser = null;
         User? targetUser = null;
         if (User?.Identity?.Name is string subjectName)
         {
-            subjectUser = _context.Users.FirstOrDefault(user => user.Name == subjectName);
+            subjectUser = _context.User.FirstOrDefault(user => user.Name == subjectName);
         }
         if (contactQuery.TargetUser is string targetName)
         {
-            targetUser = _context.Users.FirstOrDefault(user => user.Name == targetName);
+            targetUser = _context.User.FirstOrDefault(user => user.Name == targetName);
         }
         if (subjectUser is null)
         {
@@ -41,7 +63,7 @@ public class ContactController : ControllerBase
         {
             return BadRequest($"Invalid target user");
         }
-        var relation = _context.UsersRelations.FirstOrDefault(rel =>
+        var relation = _context.UsersRelation.FirstOrDefault(rel =>
             rel.SubjectUser == subjectUser && rel.TargetUser == targetUser
         );
         if (relation is not null)
@@ -55,14 +77,15 @@ public class ContactController : ControllerBase
             var newSubjectId = new Guid(subjectUser.Id.ToString());
             var newTargetId = new Guid(targetUser.Id.ToString());
 
-            var newRelation = new UsersRelation() {
+            var newRelation = new UsersRelation()
+            {
                 SubjectId = newSubjectId,
                 TargetId = newTargetId,
                 Displayed = contactQuery.Display,
                 Muted = contactQuery.Mute,
                 Blocked = contactQuery.Block
             };
-            _context.UsersRelations.Add(newRelation);
+            _context.UsersRelation.Add(newRelation);
             _context.SaveChanges();
         }
         return Ok();
