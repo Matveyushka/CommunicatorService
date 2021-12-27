@@ -32,7 +32,7 @@ public class MessagesController : ControllerBase
         var messages = _context
             .PrivateMessage
             .Where(message => (message.Sender == subjectUser && message.Recipient.Name == name) || (message.Sender.Name == name && message.Recipient.Name == subjectUser.Name))
-            .Select(message => message.Content)
+            .Select(message => new { Sender = message.Sender.Name, Recepient = message.Recipient.Name, Content = message.Content })
             .ToList();
 
         return new JsonResult(messages);
