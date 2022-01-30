@@ -36,7 +36,10 @@ public class ContactController : ControllerBase
         var contacts = _context
             .UsersRelation
             .Where(relation => relation.SubjectUser == subjectUser)
-            .Select(relation => relation.TargetUser.Name)
+            .Select(relation => new {
+                Name = relation.TargetUser.Name,
+                UnreadMessages = _context.PrivateMessage.Where(msg => msg.Sender == relation.TargetUser && msg.Recipient == subjectUser && msg.ReceiptDateTime == null).Count()
+            })
             .ToList();
 
         return new JsonResult(contacts);

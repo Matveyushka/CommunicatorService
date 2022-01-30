@@ -1,6 +1,7 @@
 
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 public class TargetUser
 {
@@ -31,8 +32,13 @@ public class MessagesController : ControllerBase
         }
         var messages = _context
             .PrivateMessage
-            .Where(message => (message.Sender == subjectUser && message.Recipient.Name == name) || (message.Sender.Name == name && message.Recipient.Name == subjectUser.Name))
-            .Select(message => new { Sender = message.Sender.Name, Recepient = message.Recipient.Name, Content = message.Content })
+            .Where(message => 
+                ((message.Sender == subjectUser && message.Recipient.Name == name) || 
+                (message.Sender.Name == name && message.Recipient.Name == subjectUser.Name)) &&
+                message.Deleted == false)
+            .Include(message => message.Sender)
+            .Include(message => message.Recipient)
+            .Select(message => new PrivateMessageDTO(message))
             .ToList();
 
         return new JsonResult(messages);
