@@ -11,24 +11,28 @@ public class CommunicatorDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.IncomingPrivateMessages)
-            .WithOne(m => m.Recipient)
-            .HasForeignKey(m => m.RecipientId);
+        modelBuilder.Entity<PrivateMessage>()
+            .HasOne(m => m.Sender)
+            .WithMany(u => u.OutcomingPrivateMessages)
+            .HasForeignKey(m => m.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.OutcomingPrivateMessages)
-            .WithOne(m => m.Sender)
-            .HasForeignKey(m => m.SenderId);
+        modelBuilder.Entity<PrivateMessage>()
+            .HasOne(m => m.Recipient)
+            .WithMany(u => u.IncomingPrivateMessages)
+            .HasForeignKey(m => m.RecipientId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.IncomingUsersRelation)
-            .WithOne(r => r.TargetUser)
-            .HasForeignKey(r => r.TargetId);
+        modelBuilder.Entity<UsersRelation>()
+            .HasOne(m => m.SubjectUser)
+            .WithMany(u => u.OutcomingUsersRelation)
+            .HasForeignKey(m => m.SubjectId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.OutcomingUsersRelation)
-            .WithOne(r => r.SubjectUser)
-            .HasForeignKey(r => r.SubjectId);
+        modelBuilder.Entity<UsersRelation>()
+            .HasOne(m => m.TargetUser)
+            .WithMany(u => u.IncomingUsersRelation)
+            .HasForeignKey(m => m.TargetId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

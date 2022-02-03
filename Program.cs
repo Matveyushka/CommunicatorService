@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<CommunicatorDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Database")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 builder.Services.AddCors(options =>
     {
         options.AddPolicy("any", policy =>

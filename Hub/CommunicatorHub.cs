@@ -90,25 +90,29 @@ public class CommunicatorHub : Hub
         });
     }
 
-    public async Task ReadMessage(Guid messageId)
+    public async Task ReadMessage(List<Guid> messageIds)
     {
-        var message = _context
+        var messages = _context
             .PrivateMessage
-            .Include(message => message.Recipient)
-            .Include(message => message.Sender)
-            .FirstOrDefault(message => message.Id == messageId);
-        if (message is not null)
+            .Include(msg => msg.Recipient)
+            .Include(msg => msg.Sender)
+            .Where(msg => messageIds.Contains(msg.Id))
+            .ToList();
+        if (messages.Count > 0)
         {
-            await TryGetUsers(message.Sender.Name, async (subjectUser, targetUser) =>
+            await TryGetUsers(messages[0].Sender.Name, async (subjectUser, targetUser) =>
             {
-                if (message.Recipient == subjectUser)
+                messages.ForEach(message =>
                 {
-                    message.ReceiptDateTime = DateTime.Now;
-                    _context.SaveChanges();
-                    await Clients
-                        .Users(new List<string>() { subjectUser.Name, targetUser.Name })
-                        .SendAsync("MessageRead", new PrivateMessageDTO(message));
-                }
+                    if (messages[0].Recipient == subjectUser)
+                    {
+                        message.ReceiptDateTime = DateTime.Now;
+                    }
+                });
+                _context.SaveChanges();
+                await Clients
+                    .Users(new List<string>() { subjectUser.Name, targetUser.Name })
+                    .SendAsync("MessageRead", messages.Select(msg => new PrivateMessageDTO(msg)).ToList());
             });
         }
     }
