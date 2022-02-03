@@ -48,7 +48,7 @@ public class CommunicatorHub : Hub
         });
     }
 
-    public async Task SendMessage(string targetUserName, string content)
+    public async Task SendMessage(Guid tempId, string targetUserName, string content)
     {
         await TryGetUsers(targetUserName, async (subjectUser, targetUser) =>
         {
@@ -75,7 +75,7 @@ public class CommunicatorHub : Hub
                 _context.SaveChanges();
                 await Clients
                     .Users(new List<string>() { subjectUser.Name, targetUser.Name })
-                    .SendAsync("ReceiveMessage", new PrivateMessageDTO(message));
+                    .SendAsync("ReceiveMessage", tempId, new PrivateMessageDTO(message));
             }
         });
     }
