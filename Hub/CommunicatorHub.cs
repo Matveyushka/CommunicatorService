@@ -117,22 +117,46 @@ public class CommunicatorHub : Hub
         }
     }
 
-    public async Task DeleteMessage(Guid messageId)
+    public async Task DeleteMessages(List<Guid> messageIds)
     {
-        var message = _context.PrivateMessage.FirstOrDefault(message => message.Id == messageId);
-        if (message is not null)
+        var messages = _context
+            .PrivateMessage
+            .Include(msg => msg.Recipient)
+            .Include(msg => msg.Sender)
+            .Where(msg => messageIds.Contains(msg.Id)).ToList();
+        if (messages.Count > 0)
         {
-            await TryGetUsers(message.Sender.Name, async (subjectUser, targetUser) =>
+            await TryGetSubjectUser(async subjectUser =>
             {
-                if (message.Recipient == subjectUser || message.Sender == subjectUser)
-                {
-                    message.Deleted = true;
-                    _context.SaveChanges();
-                    await Clients
-                        .User(message.Sender.Name)
-                        .SendAsync("MessageDelete", messageId);
-                }
+                var deletedMessagesIds = new List<Guid>();
+                var deletedMessagesUsers = new List<string>();
+                DeleteMessagesWithUser(subjectUser, messages, deletedMessagesIds, deletedMessagesUsers);
+                _context.SaveChanges();
+                deletedMessagesUsers.Add(subjectUser.Name);
+                await Clients
+                    .Users(deletedMessagesUsers.Distinct())
+                    .SendAsync("MessagesDelete", deletedMessagesIds);
             });
         }
+    }
+
+    private static void DeleteMessagesWithUser(
+        User subjectUser, 
+        List<PrivateMessage> messages, 
+        List<Guid> deletedMessagesIds, 
+        List<string> deletedMessagesUsers)
+    {
+        messages.ForEach(msg =>
+        {
+            if (msg.Recipient == subjectUser || msg.Sender == subjectUser)
+            {
+                msg.Deleted = true;
+                deletedMessagesIds.Add(msg.Id);
+                var otherUser = msg.Recipient == subjectUser ?
+                    msg.Sender.Name :
+                    msg.Recipient.Name;
+                deletedMessagesUsers.Add(otherUser);
+            }
+        });
     }
 }
