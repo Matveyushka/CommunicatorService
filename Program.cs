@@ -42,10 +42,6 @@ builder.Services.AddAuthentication(options =>
             {
                 var accessToken = context.Request.Query["access_token"];
                 context.Token = accessToken;
-                /*if ((accessToken.Count > 0) && (context.HttpContext.Request.Path.StartsWithSegments("/hub")))
-                {
-                    
-                }*/
                 return Task.CompletedTask;
             }
         };
@@ -53,8 +49,9 @@ builder.Services.AddAuthentication(options =>
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = false,
-            ClockSkew = new TimeSpan(0)
+            ClockSkew = new TimeSpan(0, 5, 0)
         };
+
     });
 
 builder.Services.AddScoped<UserRelationRepository>();

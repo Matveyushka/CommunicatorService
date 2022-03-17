@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 public class ContactQuery
 {
@@ -11,6 +11,7 @@ public class ContactQuery
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class ContactController : ControllerBase
 {
     CommunicatorDbContext _context { get; set; }
@@ -33,12 +34,20 @@ public class ContactController : ControllerBase
         {
             return BadRequest($"ТЫ МЕНЯ ОБМАНУТЬ ПЫТАЕШЬСЯ А ВОТ НЕ ВЫЙДЕТ");
         }
+
         var contacts = _context
             .UsersRelation
             .Where(relation => relation.SubjectUser == subjectUser)
-            .Select(relation => new {
+            .Select(relation => new
+            {
                 Name = relation.TargetUser.Name,
-                UnreadMessages = _context.PrivateMessage.Where(msg => msg.Sender == relation.TargetUser && msg.Recipient == subjectUser && msg.ReceiptDateTime == null).Count()
+                UnreadMessages = _context
+                    .PrivateMessage
+                    .Where(msg =>
+                        msg.Sender == relation.TargetUser
+                        && msg.Recipient == subjectUser
+                        && msg.ReceiptDateTime == null
+                        && msg.Deleted == false).Count()
             })
             .ToList();
 
