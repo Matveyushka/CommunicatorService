@@ -82,12 +82,9 @@ public class CommunicatorHub : Hub
 
     public async Task NotifyTyping(string targetUserName)
     {
-        if (Context.UserIdentifier is string subjectUserName)
-        {
-            await Clients
-                .User(targetUserName)
-                .SendAsync("TypingNotify", subjectUserName);
-        }
+        await Clients
+            .User(targetUserName)
+            .SendAsync("TypingNotify", Context.UserIdentifier);
     }
 
     public async Task ReadMessage(List<Guid> messageIds)
@@ -128,14 +125,13 @@ public class CommunicatorHub : Hub
         {
             await TryGetSubjectUser(async subjectUser =>
             {
-                var deletedMessagesIds = new List<Guid>();
-                var deletedMessagesUsers = new List<string>();
-                DeleteMessagesWithUser(subjectUser, messages, deletedMessagesIds, deletedMessagesUsers);
+                var deletedMessagesInfo = new List<CommunicatorDeleteInfo>();
+                DeleteMessagesWithUser(subjectUser, messages, deletedMessagesInfo);
                 context.SaveChanges();
-                deletedMessagesUsers.Add(subjectUser.Name);
+                var clients = deletedMessagesInfo.SelectMany(info => new List<string>() { info.Sender, info.Recipient }).Distinct();
                 await Clients
-                    .Users(deletedMessagesUsers.Distinct())
-                    .SendAsync("MessagesDelete", deletedMessagesIds);
+                    .Users(clients.Distinct())
+                    .SendAsync("MessagesDelete", deletedMessagesInfo);
             });
         }
     }
@@ -143,19 +139,19 @@ public class CommunicatorHub : Hub
     private static void DeleteMessagesWithUser(
         User subjectUser,
         List<PrivateMessage> messages,
-        List<Guid> deletedMessagesIds,
-        List<string> deletedMessagesUsers)
+        List<CommunicatorDeleteInfo> deletedMessagesInfo)
     {
         messages.ForEach(msg =>
         {
             if (msg.Recipient == subjectUser || msg.Sender == subjectUser)
             {
                 msg.Deleted = true;
-                deletedMessagesIds.Add(msg.Id);
-                var otherUser = msg.Recipient == subjectUser ?
-                    msg.Sender.Name :
-                    msg.Recipient.Name;
-                deletedMessagesUsers.Add(otherUser);
+                deletedMessagesInfo.Add(new CommunicatorDeleteInfo() {
+                    Sender = msg.Sender.Name, 
+                    Recipient = msg.Recipient.Name,
+                    Id = msg.Id,
+                    Watched = msg.ReceiptDateTime != null
+                });
             }
         });
     }
