@@ -33,9 +33,9 @@ public class MessagesController : ControllerBase
         var messages = _context
             .PrivateMessage
             .Where(message => 
+                message.Deleted == false &&
                 ((message.Sender == subjectUser && message.Recipient.Name == name) || 
-                (message.Sender.Name == name && message.Recipient.Name == subjectUser.Name)) &&
-                message.Deleted == false)
+                (message.Sender.Name == name && message.Recipient.Name == subjectUser.Name)))
             .Include(message => message.Sender)
             .Include(message => message.Recipient)
             .Select(message => new PrivateMessageDTO(message))

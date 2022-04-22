@@ -34,7 +34,7 @@ builder.Services.AddAuthentication(options =>
 
         options.RequireHttpsMetadata = false;
 
-        options.Authority = "https://auth.бонч.рф";
+        options.Authority = builder.Configuration.GetSection("Identity").GetValue<string>("Auth");
 
         options.Events = new JwtBearerEvents
         {

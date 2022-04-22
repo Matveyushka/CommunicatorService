@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 public class CommunicatorHub : Hub
 {
-    CommunicatorDbContext _context { get; set; }
+    CommunicatorDbContext context { get; set; }
     UserRelationRepository userRelationRepository { get; set; }
     public CommunicatorHub(CommunicatorDbContext context, UserRelationRepository userRelationRepository)
     {
-        this._context = context;
+        this.context = context;
         this.userRelationRepository = userRelationRepository;
     }
 
@@ -16,7 +16,7 @@ public class CommunicatorHub : Hub
         User? subjectUser = null;
         if (Context.UserIdentifier is string subjectName)
         {
-            subjectUser = _context.User.FirstOrDefault(user => user.Name == subjectName);
+            subjectUser = context.User.FirstOrDefault(user => user.Name == subjectName);
         }
         if (subjectUser is not null)
         {
@@ -29,7 +29,7 @@ public class CommunicatorHub : Hub
         User? targetUser = null;
         if (targetUserName is string)
         {
-            targetUser = _context.User.FirstOrDefault(user => user.Name == targetUserName);
+            targetUser = context.User.FirstOrDefault(user => user.Name == targetUserName);
         }
         if (targetUser is not null)
         {
@@ -52,7 +52,7 @@ public class CommunicatorHub : Hub
     {
         await TryGetUsers(targetUserName, async (subjectUser, targetUser) =>
         {
-            var targetSenderRelation = _context.UsersRelation.FirstOrDefault(relation =>
+            var targetSenderRelation = context.UsersRelation.FirstOrDefault(relation =>
                 relation.SubjectUser == targetUser && relation.TargetUser == subjectUser);
             if (targetSenderRelation is null)
             {
@@ -71,8 +71,8 @@ public class CommunicatorHub : Hub
                     SenderId = subjectUser.Id,
                     RecipientId = targetUser.Id,
                 };
-                _context.PrivateMessage.Add(message);
-                _context.SaveChanges();
+                context.PrivateMessage.Add(message);
+                context.SaveChanges();
                 await Clients
                     .Users(new List<string>() { subjectUser.Name, targetUser.Name })
                     .SendAsync("ReceiveMessage", tempId, new PrivateMessageDTO(message));
@@ -82,17 +82,17 @@ public class CommunicatorHub : Hub
 
     public async Task NotifyTyping(string targetUserName)
     {
-        await TryGetUsers(targetUserName, async (subjectUser, targetUser) =>
+        if (Context.UserIdentifier is string subjectUserName)
         {
             await Clients
-                .User(targetUser.Name)
-                .SendAsync("TypingNotify", subjectUser.Name);
-        });
+                .User(targetUserName)
+                .SendAsync("TypingNotify", subjectUserName);
+        }
     }
 
     public async Task ReadMessage(List<Guid> messageIds)
     {
-        var messages = _context
+        var messages = context
             .PrivateMessage
             .Include(msg => msg.Recipient)
             .Include(msg => msg.Sender)
@@ -109,7 +109,7 @@ public class CommunicatorHub : Hub
                         message.ReceiptDateTime = DateTime.Now;
                     }
                 });
-                _context.SaveChanges();
+                context.SaveChanges();
                 await Clients
                     .Users(new List<string>() { subjectUser.Name, targetUser.Name })
                     .SendAsync("MessageRead", messages.Select(msg => new PrivateMessageDTO(msg)).ToList());
@@ -119,7 +119,7 @@ public class CommunicatorHub : Hub
 
     public async Task DeleteMessages(List<Guid> messageIds)
     {
-        var messages = _context
+        var messages = context
             .PrivateMessage
             .Include(msg => msg.Recipient)
             .Include(msg => msg.Sender)
@@ -131,7 +131,7 @@ public class CommunicatorHub : Hub
                 var deletedMessagesIds = new List<Guid>();
                 var deletedMessagesUsers = new List<string>();
                 DeleteMessagesWithUser(subjectUser, messages, deletedMessagesIds, deletedMessagesUsers);
-                _context.SaveChanges();
+                context.SaveChanges();
                 deletedMessagesUsers.Add(subjectUser.Name);
                 await Clients
                     .Users(deletedMessagesUsers.Distinct())
@@ -141,9 +141,9 @@ public class CommunicatorHub : Hub
     }
 
     private static void DeleteMessagesWithUser(
-        User subjectUser, 
-        List<PrivateMessage> messages, 
-        List<Guid> deletedMessagesIds, 
+        User subjectUser,
+        List<PrivateMessage> messages,
+        List<Guid> deletedMessagesIds,
         List<string> deletedMessagesUsers)
     {
         messages.ForEach(msg =>

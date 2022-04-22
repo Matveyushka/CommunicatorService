@@ -38,7 +38,11 @@ public class ContactController : ControllerBase
             .Where(relation => relation.SubjectUser == subjectUser)
             .Select(relation => new {
                 Name = relation.TargetUser.Name,
-                UnreadMessages = _context.PrivateMessage.Where(msg => msg.Sender == relation.TargetUser && msg.Recipient == subjectUser && msg.ReceiptDateTime == null).Count()
+                UnreadMessages = _context.PrivateMessage.Where(msg => 
+                    msg.Sender == relation.TargetUser && 
+                    msg.Recipient == subjectUser && 
+                    msg.ReceiptDateTime == null &&
+                    msg.Deleted == false).Count()
             })
             .ToList();
 
