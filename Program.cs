@@ -5,15 +5,19 @@ using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddSignalR();
+
 builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
+
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<CommunicatorDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
+
 builder.Services.AddCors(options =>
     {
         options.AddPolicy("any", policy =>
@@ -23,6 +27,7 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
     });
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -30,11 +35,16 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer("Bearer", options =>
     {
-        options.BackchannelHttpHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = delegate { return true; } };
+        options.BackchannelHttpHandler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = delegate { return true; }
+        };
 
         options.RequireHttpsMetadata = false;
 
-        options.Authority = builder.Configuration.GetSection("Identity").GetValue<string>("Auth");
+        options.Authority = builder.Configuration
+            .GetSection("Identity")
+            .GetValue<string>("Auth");
 
         options.Events = new JwtBearerEvents
         {
@@ -54,11 +64,12 @@ builder.Services.AddAuthentication(options =>
 
     });
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<UserRelationRepository>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -30,10 +30,6 @@ public class ContactController : ControllerBase
         {
             subjectUser = _context.User.FirstOrDefault(user => user.Name == subjectName);
         }
-        if (subjectUser is null)
-        {
-            return BadRequest($"ТЫ МЕНЯ ОБМАНУТЬ ПЫТАЕШЬСЯ А ВОТ НЕ ВЫЙДЕТ");
-        }
 
         var contacts = _context
             .UsersRelation
